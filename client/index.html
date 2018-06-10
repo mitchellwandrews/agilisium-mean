@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="AgilisiumApp">
+  <head>
+    <meta charset="utf-8" />
+    <script src="angular/angular.min.js"></script>
+    <script src="assets/app.js"></script>
+    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="validate.js/validate.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/dist/css/bootstrap.min.css">
+    <style>
+      .loader {
+        border: 16px solid #f3f3f3; /* Light grey */
+        border-top: 16px solid #3498db; /* Blue */
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        animation: spin 2s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body ng-controller="MainController">
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container text-center">
+        <h1 class="display-4">Product Master Sales Data</h1>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 mb-3">
+          <ul class="nav nav-tabs">
+            <li class="nav-item">
+              <a class="nav-link" href="#" ng-click="setActiveTab('master')" ng-class="{'active': activeTab === 'master'}">Master Data</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" ng-click="setActiveTab('create')" ng-class="{'active': activeTab === 'create'}">Create Product</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div ng-controller="MasterDataController" ng-show="activeTab === 'master'">
+      <div class="container">
+        <div class="row">
+          <div class="col-12 col-md-10 offset-md-1 mt-3">
+            <div class="loader mr-auto ml-auto" ng-show="loading"></div>
+            <div ng-if="!loading">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th class="text-center">Title</th>
+                    <th class="text-center">Artist</th>
+                    <th class="text-center">Release Date</th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="item in mainData">
+                    <td>{{ item.productId }}</td>
+                    <td class="text-center">{{ item.title }}</td>
+                    <td class="text-center">{{ item.artistName }}</td>
+                    <td class="text-center">{{ item.relDate|date:shortDate }}</td>
+                    <td class="text-right">
+                      <button type="button" class="btn btn-sm btn-success mr-2" ng-click="selectView(item)">View</button>
+                      <button type="button" class="btn btn-sm btn-danger" ng-click="selectDelete(item)">Delete</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Delete Entry</h5>
+              <button type="button" class="close" data-dismiss="modal">
+                <span>&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to delete this entry and all associated sale data?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-danger" ng-click="confirmDelete()">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="detailModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ selectedItem.title }} Sales Data</h5>
+              <button type="button" class="close" data-dismiss="modal">
+                <span>&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="container">
+                <div class="row">
+                  <div class="col-12 col-md-6">
+                    <div class="form-group">
+                      <p class="mb-0"><strong>Product ID</strong></p>
+                      <p>{{ salesItem.productId }}</p>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="form-group">
+                      <p class="mb-0"><strong>Unit Price</strong></p>
+                      <p>{{ salesItem.unitPrice|currency }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-12 col-md-6">
+                    <div class="form-group">
+                      <p class="mb-0"><strong>Sales Quantity</strong></p>
+                      <p>{{ salesItem.saleQty }}</p>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <div class="form-group">
+                      <p class="mb-0"><strong>Sales Revenue</strong></p>
+                      <p>{{ salesItem.saleRev|currency }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div ng-controller="CreateProductController" ng-show="activeTab === 'create'">
+      <form id="createProductForm" ng-submit="save($event)">
+        <div class="container">
+          <div class="row">
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Artist Name</label>
+                <input type="text" class="form-control" ng-model="product.artistName" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Album Title</label>
+                <input type="text" class="form-control" ng-model="product.title" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Product ID</label>
+                <small class="text-muted">Must be a unique number</small>
+                <input type="number" class="form-control" ng-model="product.productId" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>UPC</label>
+                <small class="text-muted">Must be a 12 digit number</small>
+                <input type="number" class="form-control" ng-model="product.upc" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Release Date</label>
+                <input type="date" class="form-control" ng-model="product.relDate" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Sales Quantity</label>
+                <small class="text-muted">Must be a number</small>
+                <input type="number" class="form-control" ng-model="product.saleQty" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Sales Revenue</label>
+                <small class="text-muted">Requires 2 decimal places Ex. x.22</small>
+                <input type="text" class="form-control" ng-model="product.saleRev" />
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label>Unit Price</label>
+                <small class="text-muted">Requires 2 decimal places Ex. x.22</small>
+                <input type="text" class="form-control" ng-model="product.unitPrice" />
+              </div>
+            </div>
+            <div class="col-12 text-right">
+              <p class="float-left">* ALL FIELDS ARE REQUIRED</p>
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="alert alert-danger alert-dismissible fade show" role="alert" ng-repeat="item in errors">
+                <span class="text-uppercase">{{ item }}</span>
+                <button type="button" class="close" data-dismiss="alert">
+                  <span>&times;</span>
+                </button>
+              </div>
+              <div class="alert alert-success alert-dismissible fade show" role="alert" ng-show="success">
+                NEW RECORD ADDED!
+                <button type="button" class="close" data-dismiss="alert">
+                  <span>&times;</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

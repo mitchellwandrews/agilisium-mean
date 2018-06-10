@@ -2,6 +2,7 @@ require('./config/config.js');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
+const path = require('path');
 
 const { mongoose } = require('./db/mongoose');
 const { MasterData } = require('./models/masterdata');
@@ -10,9 +11,11 @@ const { SalesData } = require('./models/salesdata');
 var app = express();
 
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, '../client')));
+app.use(express.static(path.join(__dirname, '../node_modules')));
 
 app.get('/', (req, res) => {
-  res.send('hello world!');
+  res.render('index');
 });
 
 app.post('/masterdata', (req, res) => {
@@ -74,7 +77,7 @@ app.post('/salesdata', (req, res) => {
 app.get('/salesdata/:productId', (req, res) => {
   var id = req.params.productId;
 
-  SalesData.find({
+  SalesData.findOne({
     productId: id
   }).then((salesdata) => {
     if (!salesdata) {
