@@ -10,6 +10,8 @@ const { SalesData } = require('./models/salesdata');
 
 var app = express();
 
+app.set('port', (process.env.PORT || 3000));
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../client')));
 app.use(express.static(path.join(__dirname, '../node_modules')));
@@ -106,6 +108,6 @@ app.delete('/salesdata/:productId', (req, res) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log('Server on port 3000');
+app.listen(app.get('port'), () => {
+  console.log('Node app is running on port', app.get('port'));
 });
